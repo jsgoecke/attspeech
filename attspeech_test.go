@@ -31,6 +31,23 @@ func TestCustomApiBase(t *testing.T) {
 	})
 }
 
+func TestToDash(t *testing.T) {
+	Convey("Converting struct elements to HTTP headers", t, func() {
+		Convey("Should leave this word undashed", func() {
+			word := toDash("Foobar")
+			So(word, ShouldEqual, "Foobar")
+		})
+		Convey("Should put one dash in this word", func() {
+			word := toDash("FooBar")
+			So(word, ShouldEqual, "Foo-Bar")
+		})
+		Convey("Should put one dash in this word with multiple caps", func() {
+			word := toDash("FooBarBaz")
+			So(word, ShouldEqual, "Foo-BarBaz")
+		})
+	})
+}
+
 func TestGetTokens(t *testing.T) {
 	Convey("Should get proper tokens", t, func() {
 		ts := serveHTTP(t)
