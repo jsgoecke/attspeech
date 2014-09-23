@@ -205,6 +205,8 @@ func (apiError *APIError) generateErr() error {
 // setHeaders returns the APIRequest as a map
 func (apiRequest *APIRequest) setHeaders(req *http.Request) {
 	headers := make(map[string]string)
+	xarg := ""
+
 	s := reflect.ValueOf(apiRequest).Elem()
 	typeOfT := s.Type()
 	for i := 0; i < s.NumField(); i++ {
@@ -212,12 +214,15 @@ func (apiRequest *APIRequest) setHeaders(req *http.Request) {
 		name := typeOfT.Field(i).Name
 		if name != "Data" && name != "Text" {
 			if name == "VoiceName" || name == "Volume" || name == "Tempo" {
-				headers["X-Arg"] += "," + name + "=" + f.Interface().(string)
+				if f.Interface().(string) != "" {
+					xarg += "," + name + "=" + f.Interface().(string)
+				}
 			} else {
 				headers[toDash(name)] = f.Interface().(string)
 			}
 		}
 	}
+	headers["X-Arg"] += xarg
 	for key, value := range headers {
 		req.Header.Add(key, value)
 	}

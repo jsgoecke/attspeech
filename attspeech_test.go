@@ -48,6 +48,32 @@ func TestToDash(t *testing.T) {
 	})
 }
 
+func TestSetHeaders(t *testing.T) {
+	Convey("Should handle X-Arg additions properly", t, func() {
+		ts := serveHTTP(t)
+		client := New("foo", "bar", "")
+		client.APIBase = ts.URL
+		client.SetAuthTokens()
+		apiRequest := client.NewAPIRequest(TTSResource)
+		apiRequest.ContentType = "audio/x-wav"
+		apiRequest.Text = "foobar"
+		apiRequest.VoiceName = "alberto"
+		apiRequest.Volume = "100"
+		apiRequest.Tempo = "0"
+		Convey("Should add VoiceName, Volume and Temp to X-Arg", func() {
+			req, _ := http.NewRequest("POST", client.APIBase, nil)
+			apiRequest.setHeaders(req)
+			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,VoiceName=alberto,Volume=100,Tempo=0")
+		})
+		Convey("Should add additional X-Arg params while preserving the original ones", func() {
+			req, _ := http.NewRequest("POST", client.APIBase, nil)
+			apiRequest.XArg += ",ShowWordTokens=true"
+			apiRequest.setHeaders(req)
+			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,ShowWordTokens=true,VoiceName=alberto,Volume=100,Tempo=0")
+		})
+	})
+}
+
 func TestGetTokens(t *testing.T) {
 	Convey("Should get proper tokens", t, func() {
 		ts := serveHTTP(t)
