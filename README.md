@@ -87,7 +87,3 @@ func main() {
 	cd attspeech
 	go get github.com/smartystreets/goconvey/convey
 	go test
-
-## ToDo
-
-	* Implement Custom Speech to Text

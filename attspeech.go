@@ -90,9 +90,9 @@ SpeechToText converts an audio file to text
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
 	// data is the binary content of an audio file
-	apiRequest := &APIRequest{}
-	apiRequest.STT.Data = data
-	apiRequest.STT.ContentType = "audio/wav"
+	apiRequest := client.NewAPIRequest(STTResource)
+	apiRequest.Data = data
+	apiRequest.ContentType = "audio/wav"
 	result, apiError, err := client.SpeechToText(apiRequest)
 
 More details available here:
@@ -127,10 +127,10 @@ TextToSpeech converts text to a speech file
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
 
-	request := &APIRequest{}
-	request.TTS.FileType = "audio/x-wav",
-	request.TTS.Voice = "crystal",
-	request.TTS.Text = "I want to be an airborne ranger, I want to live the life of danger.",
+	request := client.NewAPIRequest(TTSResource)
+	request.Accept = "audio/x-wav",
+	request.VoiceName = "crystal",
+	request.Text = "I want to be an airborne ranger, I want to live the life of danger.",
 	data, err := client.TextToSpeech(request)
 
 More details available here:
