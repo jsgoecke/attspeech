@@ -115,11 +115,17 @@ func (client *Client) SpeechToText(apiRequest *APIRequest) (*Recognition, error)
 	}
 	if statusCode == 200 {
 		recognition := &Recognition{}
-		json.Unmarshal(body, recognition)
+		err := json.Unmarshal(body, recognition)
+		if err != nil {
+			return nil, err
+		}
 		return recognition, nil
 	}
 	apiError := &APIError{}
-	json.Unmarshal(body, apiError)
+	err = json.Unmarshal(body, apiError)
+	if err != nil {
+		return nil, apiError.generateErr()
+	}
 	return nil, apiError.generateErr()
 }
 
@@ -158,12 +164,15 @@ func (client *Client) SpeechToTextCustom(apiRequest *APIRequest, grammar string,
 	if err != nil {
 		return nil, err
 	}
+	apiError := &APIError{}
 	if statusCode == 200 {
 		recognition := &Recognition{}
-		json.Unmarshal(body, recognition)
+		err := json.Unmarshal(body, recognition)
+		if err != nil {
+			return nil, apiError.generateErr()
+		}
 		return recognition, nil
 	}
-	apiError := &APIError{}
 	return nil, apiError.generateErr()
 }
 
@@ -196,7 +205,10 @@ func (client *Client) TextToSpeech(apiRequest *APIRequest) ([]byte, error) {
 		return body, nil
 	}
 	apiError := &APIError{}
-	json.Unmarshal(body, apiError)
+	err = json.Unmarshal(body, apiError)
+	if err != nil {
+		return nil, apiError.generateErr()
+	}
 	return nil, apiError.generateErr()
 }
 
@@ -246,7 +258,7 @@ func (client *Client) post(resource string, body *bytes.Buffer, apiRequest *APIR
 		return nil, 0, err
 	}
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	defer resp.Body.Close()
 	return respBody, resp.StatusCode, nil
 }
 
@@ -327,6 +339,7 @@ func toDash(value string) string {
 func buildForm(apiRequest *APIRequest, grammar string, dictionary string) (*bytes.Buffer, string) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
+	defer writer.Close()
 
 	if dictionary != "" {
 		// Add the dictionary field
@@ -341,8 +354,6 @@ func buildForm(apiRequest *APIRequest, grammar string, dictionary string) (*byte
 	// Add the file field
 	contentDisposition = "form-data; name=\"x-voice\"; filename=\"" + apiRequest.Filename + "\""
 	apiRequest.addField(writer, grammar, contentDisposition, apiRequest.ContentType)
-
-	writer.Close()
 
 	contentType := writer.FormDataContentType()
 	contentType = strings.Replace(contentType, "form-data", "x-srgs-audio", 1)
