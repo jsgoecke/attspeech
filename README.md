@@ -8,6 +8,10 @@ Go client for the [AT&T Speech API](http://developer.att.com/apis/speech).
 
 	go get bitbucket.org/jsgoecke/attspeech
 
+## Documentation
+
+	http://godoc.org/github.com/jsgoecke/attspeech
+
 ## Usage
 
 ### Speech to Text Result
