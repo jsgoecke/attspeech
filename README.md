@@ -10,7 +10,7 @@ Go client for the [AT&T Speech API](http://developer.att.com/apis/speech).
 
 ## Documentation
 
-	http://godoc.org/github.com/jsgoecke/attspeech
+	[http://godoc.org/github.com/jsgoecke/attspeech](http://godoc.org/github.com/jsgoecke/attspeech)
 
 ## Usage
 
