@@ -103,10 +103,10 @@ More details available here:
 */
 func (client *Client) SpeechToText(apiRequest *APIRequest) (*Recognition, error) {
 	if apiRequest.ContentType == "" {
-		return nil, errors.New("A ContentType must be provided")
+		return nil, errors.New("a content type must be provided")
 	}
 	if apiRequest.Data == nil {
-		return nil, errors.New("Data to convert to text must be provided")
+		return nil, errors.New("data to convert to text must be provided")
 	}
 
 	body, statusCode, err := client.post(client.STTResource, apiRequest.Data, apiRequest)
@@ -141,16 +141,16 @@ More details available here:
 */
 func (client *Client) SpeechToTextCustom(apiRequest *APIRequest, grammar string, dictionary string) (*Recognition, error) {
 	if grammar == "" {
-		return nil, errors.New("A grammar must be provided")
+		return nil, errors.New("a grammar must be provided")
 	}
 	if apiRequest.Data == nil {
-		return nil, errors.New("Data must be provided")
+		return nil, errors.New("data must be provided")
 	}
 	if apiRequest.Filename == "" {
-		return nil, errors.New("Filename must be provided")
+		return nil, errors.New("filename must be provided")
 	}
 	if apiRequest.ContentType == "" {
-		return nil, errors.New("ContentType must be provided")
+		return nil, errors.New("content type must be provided")
 	}
 
 	apiRequest.Data, apiRequest.ContentType = buildForm(apiRequest, grammar, dictionary)
@@ -185,7 +185,7 @@ More details available here:
 */
 func (client *Client) TextToSpeech(apiRequest *APIRequest) ([]byte, error) {
 	if apiRequest.Text == "" {
-		return nil, errors.New("Text to convert to speech must be provided")
+		return nil, errors.New("text to convert to speech must be provided")
 	}
 
 	body, statusCode, err := client.post(client.TTSResource, bytes.NewBuffer([]byte(apiRequest.Text)), apiRequest)
@@ -266,7 +266,7 @@ func (apiError *APIError) generateErr() error {
 			#FIXME
 			http://developerboards.att.lithium.com/t5/API-Platform/Speech-API-STTC-Error-Returns-Invalid-JSON/td-p/38929
 		*/
-		msg = "Could not parse JSON error from the AT&T Speech API"
+		msg = "could not parse JSON error from the AT&T Speech API"
 	}
 	return errors.New(msg)
 }

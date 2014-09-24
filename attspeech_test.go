@@ -134,7 +134,7 @@ func TestSpeechToText(t *testing.T) {
 			apiRequest := client.NewAPIRequest(STTResource)
 			response, err := client.SpeechToText(apiRequest)
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "A ContentType must be provided")
+			So(err.Error(), ShouldEqual, "a content type must be provided")
 		})
 		Convey("When no Data is provided", func() {
 			ts := serveHTTP(t)
@@ -145,7 +145,7 @@ func TestSpeechToText(t *testing.T) {
 			apiRequest.ContentType = "audio/x-wav"
 			response, err := client.SpeechToText(apiRequest)
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "Data to convert to text must be provided")
+			So(err.Error(), ShouldEqual, "data to convert to text must be provided")
 		})
 		Convey("When an invalid ContentType is provided", func() {
 			ts := serveHTTP(t)
@@ -236,13 +236,13 @@ func TestSpeechToTextCustom(t *testing.T) {
 		Convey("When no Grammar is provided", func() {
 			response, err := client.SpeechToTextCustom(apiRequest, "", "")
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "A grammar must be provided")
+			So(err.Error(), ShouldEqual, "a grammar must be provided")
 		})
 		Convey("When no Data is provided", func() {
 			apiRequest.Data = nil
 			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "Data must be provided")
+			So(err.Error(), ShouldEqual, "data must be provided")
 		})
 
 		apiRequest.Data = bytes.NewBuffer([]byte(`foobar`))
@@ -250,13 +250,13 @@ func TestSpeechToTextCustom(t *testing.T) {
 		Convey("When no Filename is provided", func() {
 			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "Filename must be provided")
+			So(err.Error(), ShouldEqual, "filename must be provided")
 		})
 		Convey("When no ContentType is provided", func() {
 			apiRequest.Filename = "foobar.wav"
 			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
 			So(response, ShouldBeNil)
-			So(err.Error(), ShouldEqual, "ContentType must be provided")
+			So(err.Error(), ShouldEqual, "content type must be provided")
 		})
 		Convey("Should process a custom STT request", func() {
 			// Read the test file
@@ -292,7 +292,7 @@ func TestTextToSpeech(t *testing.T) {
 		Convey("Should return an error if Text not set", func() {
 			apiRequest := client.NewAPIRequest(TTSResource)
 			_, err := client.TextToSpeech(apiRequest)
-			So(err.Error(), ShouldEqual, "Text to convert to speech must be provided")
+			So(err.Error(), ShouldEqual, "text to convert to speech must be provided")
 		})
 		Convey("Should return an error if an invalid ContentType", func() {
 			apiRequest := client.NewAPIRequest(TTSResource)
