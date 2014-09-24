@@ -213,6 +213,7 @@ intend to overwrite the defaults for ClientApp, ClientVersion, DeviceType and De
 */
 func (client *Client) NewAPIRequest(resource string) *APIRequest {
 	apiRequest := &APIRequest{}
+	apiRequest.Accept = "application/json"
 	apiRequest.UserAgent = "Golang net/http"
 	apiRequest.XArg = "ClientApp=GoLibForATTSpeech,"
 	apiRequest.XArg += "ClientVersion=" + Version + ","
@@ -221,17 +222,14 @@ func (client *Client) NewAPIRequest(resource string) *APIRequest {
 
 	switch resource {
 	case client.STTResource:
-		apiRequest.Accept = "application/json"
 		apiRequest.Authorization = "Bearer " + client.Tokens["SPEECH"].AccessToken
 		apiRequest.TransferEncoding = "chunked"
 	case client.STTCResource:
-		apiRequest.Accept = "application/json"
 		apiRequest.Authorization = "Bearer " + client.Tokens["STTC"].AccessToken
 	case client.TTSResource:
 		apiRequest.Authorization = "Bearer " + client.Tokens["TTS"].AccessToken
 		apiRequest.ContentType = "text/plain"
 	case client.OauthResource:
-		apiRequest.Accept = "application/json"
 		apiRequest.ContentType = "application/x-www-form-urlencoded"
 	}
 	return apiRequest
