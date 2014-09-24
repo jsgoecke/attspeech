@@ -93,7 +93,7 @@ SpeechToText converts an audio file to text
 	client.SetAuthTokens()
 	// data is the binary content of an audio file
 	apiRequest := client.NewAPIRequest(STTResource)
-	apiRequest.Data = data
+	apiRequest.Data = data // where data is audio content as *bytes.Buffer
 	apiRequest.ContentType = "audio/wav"
 	result, apiError, err := client.SpeechToText(apiRequest)
 
@@ -125,6 +125,15 @@ func (client *Client) SpeechToText(apiRequest *APIRequest) (*Recognition, error)
 
 /*
 SpeechToTextCustom converts an audio file to text
+
+	client := attspeech.New("<id>", "<secret>", "")
+	client.SetAuthTokens()
+	// data is the binary content of an audio file
+	apiRequest := client.NewAPIRequest(STTResource)
+	apiRequest.Data = data // where data is audio content as *bytes.Buffer
+	apiRequest.ContentType = "audio/wav"
+	apiRequest.Filename = "test.wav"
+	result, apiError, err := client.SpeechToTextCustom(apiRequest, "<some srgs XML>", "<some pls XML>")
 
 More details available here:
 
