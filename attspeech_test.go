@@ -201,17 +201,27 @@ func TestBuildForm(t *testing.T) {
 	client := New(os.Getenv("ATT_APP_KEY"), os.Getenv("ATT_APP_SECRET"), "")
 	client.APIBase = ts.URL
 	client.SetAuthTokens()
+	apiRequest := client.NewAPIRequest(STTCResource)
+	apiRequest.ContentType = "audio/x-wav"
+	apiRequest.Filename = "test.wav"
+	apiRequest.Data = bytes.NewBuffer([]byte(`foobar`))
 	Convey("Should build a multipart form", t, func() {
-		apiRequest := client.NewAPIRequest(STTCResource)
-		apiRequest.ContentType = "audio/x-wav"
-		apiRequest.Filename = "test.wav"
-		apiRequest.Data = bytes.NewBuffer([]byte(`foobar`))
-		body, contentType := buildForm(apiRequest, "<foo>bar</foo>", "<baz>bar</baz>")
-		So(strings.Contains(contentType, "multipart/x-srgs-audio"), ShouldBeTrue)
-		bodyStr := body.String()
-		So(strings.Contains(bodyStr, "application/pls+xml"), ShouldBeTrue)
-		So(strings.Contains(bodyStr, "application/srgs+xml"), ShouldBeTrue)
-		So(strings.Contains(bodyStr, "audio/x-wav"), ShouldBeTrue)
+		Convey("With a dictionary field", func() {
+			body, contentType := buildForm(apiRequest, "<foo>bar</foo>", "<baz>bar</baz>")
+			So(strings.Contains(contentType, "multipart/x-srgs-audio"), ShouldBeTrue)
+			bodyStr := body.String()
+			So(strings.Contains(bodyStr, "application/pls+xml"), ShouldBeTrue)
+			So(strings.Contains(bodyStr, "application/srgs+xml"), ShouldBeTrue)
+			So(strings.Contains(bodyStr, "audio/x-wav"), ShouldBeTrue)
+		})
+		Convey("Without a dictionary field", func() {
+			body, contentType := buildForm(apiRequest, "<foo>bar</foo>", "")
+			So(strings.Contains(contentType, "multipart/x-srgs-audio"), ShouldBeTrue)
+			bodyStr := body.String()
+			So(strings.Contains(bodyStr, "application/pls+xml"), ShouldBeFalse)
+			So(strings.Contains(bodyStr, "application/srgs+xml"), ShouldBeTrue)
+			So(strings.Contains(bodyStr, "audio/x-wav"), ShouldBeTrue)
+		})
 	})
 }
 
