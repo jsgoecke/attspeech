@@ -282,12 +282,12 @@ func (apiRequest *APIRequest) setHeaders(req *http.Request) {
 		f := s.Field(i)
 		name := typeOfT.Field(i).Name
 		if name != "Data" && name != "Text" && name != "Filename" {
-			if name == "VoiceName" || name == "Volume" || name == "Tempo" {
-				if f.Interface().(string) != "" {
+			if f.Interface().(string) != "" {
+				if name == "VoiceName" || name == "Volume" || name == "Tempo" {
 					xarg += "," + name + "=" + f.Interface().(string)
+				} else {
+					headers[toDash(name)] = f.Interface().(string)
 				}
-			} else {
-				headers[toDash(name)] = f.Interface().(string)
 			}
 		}
 	}
