@@ -2,7 +2,6 @@ package attspeech
 
 import (
 	"bytes"
-	// "fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"io"
 	"io/ioutil"
@@ -162,6 +161,78 @@ func TestSpeechToText(t *testing.T) {
 	})
 }
 
+func TestBuildForm(t *testing.T) {
+	ts := serveHTTP(t)
+	client := New(os.Getenv("ATT_APP_KEY"), os.Getenv("ATT_APP_SECRET"), "")
+	client.APIBase = ts.URL
+	client.SetAuthTokens()
+	Convey("Should build a multipart form", t, func() {
+		apiRequest := client.NewAPIRequest(STTCResource)
+		apiRequest.ContentType = "audio/x-wav"
+		apiRequest.Filename = "test.wav"
+		apiRequest.Data = bytes.NewBuffer([]byte(`foobar`))
+		body, contentType := buildForm(apiRequest, "<foo>bar</foo>", "<baz>bar</baz>")
+		So(strings.Contains(contentType, "multipart/x-srgs-audio"), ShouldBeTrue)
+		bodyStr := body.String()
+		So(strings.Contains(bodyStr, "application/pls+xml"), ShouldBeTrue)
+		So(strings.Contains(bodyStr, "application/srgs+xml"), ShouldBeTrue)
+		So(strings.Contains(bodyStr, "audio/x-wav"), ShouldBeTrue)
+	})
+}
+
+func TestSpeechToTextCustom(t *testing.T) {
+	Convey("Should return a recognition of an audio file", t, func() {
+		ts := serveHTTP(t)
+		client := New(os.Getenv("ATT_APP_KEY"), os.Getenv("ATT_APP_SECRET"), "")
+		client.APIBase = ts.URL
+		client.SetAuthTokens()
+		apiRequest := client.NewAPIRequest(STTCResource)
+
+		Convey("When no Grammar is provided", func() {
+			response, err := client.SpeechToTextCustom(apiRequest, "", "")
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "A grammar must be provided")
+		})
+		Convey("When no Data is provided", func() {
+			apiRequest.Data = nil
+			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "Data must be provided")
+		})
+
+		apiRequest.Data = bytes.NewBuffer([]byte(`foobar`))
+
+		Convey("When no Filename is provided", func() {
+			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "Filename must be provided")
+		})
+		Convey("When no ContentType is provided", func() {
+			apiRequest.Filename = "foobar.wav"
+			response, err := client.SpeechToTextCustom(apiRequest, "foobar", "")
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "ContentType must be provided")
+		})
+		Convey("Should process a custom STT request", func() {
+			// Read the test file
+			data := &bytes.Buffer{}
+			file, err := os.Open("./test/test.wav")
+			So(err, ShouldBeNil)
+			defer file.Close()
+			_, err = io.Copy(data, file)
+			So(err, ShouldBeNil)
+
+			apiRequest.Data = data
+			apiRequest.Filename = "test.wav"
+			apiRequest.ContentType = "audio/wav"
+			response, err := client.SpeechToTextCustom(apiRequest, srgsXML(), plsXML())
+			So(err, ShouldBeNil)
+			So(response.Recognition.Status, ShouldEqual, "OK")
+			So(response.Recognition.ResponseID, ShouldEqual, "c7a420e9cdc50645412311b7c0365e34")
+		})
+	})
+}
+
 func TestTextToSpeech(t *testing.T) {
 	Convey("Should handle Text to Speech (TTS)", t, func() {
 		ts := serveHTTP(t)
@@ -194,6 +265,12 @@ func serveHTTP(t *testing.T) *httptest.Server {
 		if strings.Contains(req.RequestURI, OauthResource) {
 			w.WriteHeader(200)
 			w.Write(oauthJSON())
+			return
+		}
+		if strings.Contains(req.RequestURI, STTCResource) {
+			checkHeaders(t, req)
+			w.WriteHeader(200)
+			w.Write(customRecoginitionJSON())
 			return
 		}
 		if strings.Contains(req.RequestURI, STTResource) {
@@ -233,12 +310,12 @@ func checkHeaders(t *testing.T, req *http.Request) {
 
 func oauthJSON() []byte {
 	return []byte(`
-	{
-	    "access_token":"123",
-	    "token_type": "bearer",
-	    "expires_in":500,
-	    "refresh_token":"456"
-	}
+		{
+		    "access_token":"123",
+		    "token_type": "bearer",
+		    "expires_in":500,
+		    "refresh_token":"456"
+		}
 	`)
 }
 
@@ -353,5 +430,69 @@ func contentTypeErrorJSON() []byte {
 	        }
 	    }
 	}
+	`)
+}
+
+func plsXML() string {
+	return `<?xml version="1.0" encoding="UTF-8"?> 
+			<lexicon version="1.0" alphabet="sampa" xml:lang="en-US"> 
+			   <lexeme> 
+			       <grapheme>star</grapheme> 
+			       <phoneme>tS { n</phoneme> 
+			   </lexeme> 
+			</lexicon>`
+}
+
+func srgsXML() string {
+	return `<grammar root="top" xml:lang="en-US"> 
+			  <rule id="CONTACT"> 
+			      <one-of> 
+			        <item>star</item> 
+			        <item>key</item> 
+			      </one-of> 
+			  </rule> 
+			  <rule id="top" scope="public"> 
+			      <item> 
+			          <one-of> 
+			            <item>greeting</item> 
+			            <item>the administration menu</item> 
+			          </one-of> 
+			      </item> 
+			  <ruleref uri="#CONTACT"/> 
+			  </rule> 
+			</grammar>`
+}
+
+func customRecoginitionJSON() []byte {
+	return []byte(`
+		{
+		    "Recognition": {
+		        "Info": {
+		            "metrics": {
+		                "audioBytes": 92187,
+		                "audioTime": 11.5200005
+		            }
+		        },
+		        "NBest": [
+		            {
+		                "Confidence": 0.78,
+		                "Grade": "accept",
+		                "Hypothesis": "greeting key",
+		                "LanguageId": "en-US",
+		                "ResultText": "greeting key",
+		                "WordScores": [
+		                    0.689,
+		                    0.819
+		                ],
+		                "Words": [
+		                    "greeting",
+		                    "key"
+		                ]
+		            }
+		        ],
+		        "ResponseId": "c7a420e9cdc50645412311b7c0365e34",
+		        "Status": "OK"
+		    }
+		}
 	`)
 }

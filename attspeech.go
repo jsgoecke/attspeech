@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -122,6 +124,42 @@ func (client *Client) SpeechToText(apiRequest *APIRequest) (*Recognition, error)
 }
 
 /*
+SpeechToTextCustom converts an audio file to text
+
+More details available here:
+
+	http://developer.att.com/apis/speech/docs#resources-speech-to-text-custom
+
+*/
+func (client *Client) SpeechToTextCustom(apiRequest *APIRequest, grammar string, dictionary string) (*Recognition, error) {
+	if grammar == "" {
+		return nil, errors.New("A grammar must be provided")
+	}
+	if apiRequest.Data == nil {
+		return nil, errors.New("Data must be provided")
+	}
+	if apiRequest.Filename == "" {
+		return nil, errors.New("Filename must be provided")
+	}
+	if apiRequest.ContentType == "" {
+		return nil, errors.New("ContentType must be provided")
+	}
+
+	apiRequest.Data, apiRequest.ContentType = buildForm(apiRequest, grammar, dictionary)
+	body, statusCode, err := client.post(STTCResource, apiRequest.Data, apiRequest)
+	if err != nil {
+		return nil, err
+	}
+	if statusCode == 200 {
+		recognition := &Recognition{}
+		json.Unmarshal(body, recognition)
+		return recognition, nil
+	}
+	apiError := &APIError{}
+	return nil, apiError.generateErr()
+}
+
+/*
 TextToSpeech converts text to a speech file
 
 	client := attspeech.New("<id>", "<secret>", "")
@@ -168,6 +206,9 @@ func (client *Client) NewAPIRequest(resource string) *APIRequest {
 		apiRequest.Accept = "application/json"
 		apiRequest.Authorization = "Bearer " + client.Tokens["SPEECH"].AccessToken
 		apiRequest.TransferEncoding = "chunked"
+	case STTCResource:
+		apiRequest.Accept = "application/json"
+		apiRequest.Authorization = "Bearer " + client.Tokens["STTC"].AccessToken
 	case TTSResource:
 		apiRequest.Authorization = "Bearer " + client.Tokens["TTS"].AccessToken
 		apiRequest.ContentType = "text/plain"
@@ -196,9 +237,18 @@ func (client *Client) post(resource string, body *bytes.Buffer, apiRequest *APIR
 
 // generateErr takes the APIError and turns it into a Go error
 func (apiError *APIError) generateErr() error {
-	msg := apiError.RequestError.ServiceException.MessageId + " - "
+	msg := apiError.RequestError.ServiceException.MessageID + " - "
 	msg += apiError.RequestError.ServiceException.Text + " - "
 	msg += apiError.RequestError.ServiceException.Variables
+	if msg == " -  - " {
+		msg = apiError.RequestError.PolicyException.MessageID + " - "
+		msg += apiError.RequestError.PolicyException.Text + " - "
+		msg += apiError.RequestError.PolicyException.Variables
+
+	}
+	if msg == " -  - " {
+		msg = "Could not parse JSON error from the AT&T Speech API"
+	}
 	return errors.New(msg)
 }
 
@@ -212,7 +262,7 @@ func (apiRequest *APIRequest) setHeaders(req *http.Request) {
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
 		name := typeOfT.Field(i).Name
-		if name != "Data" && name != "Text" {
+		if name != "Data" && name != "Text" && name != "Filename" {
 			if name == "VoiceName" || name == "Volume" || name == "Tempo" {
 				if f.Interface().(string) != "" {
 					xarg += "," + name + "=" + f.Interface().(string)
@@ -252,4 +302,39 @@ func toDash(value string) string {
 		}
 	}
 	return dashedWord
+}
+
+//buildForm builds a multipart form to send the file with
+func buildForm(apiRequest *APIRequest, grammar string, dictionary string) (*bytes.Buffer, string) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if dictionary != "" {
+		// Write the dictionary field
+		dictionaryHeader := make(map[string][]string)
+		dictionaryHeader["Content-Disposition"] = []string{"form-data; name=\"x-dictionary\"; filename=\"speech_alpha.pls\""}
+		dictionaryHeader["Content-Type"] = []string{"application/pls+xml"}
+		part, _ := writer.CreatePart(dictionaryHeader)
+		part.Write([]byte(dictionary + "\n"))
+	}
+
+	// Write the grammar field
+	grammarHeader := make(map[string][]string)
+	grammarHeader["Content-Disposition"] = []string{"form-data; name=\"x-grammar\""}
+	grammarHeader["Content-Type"] = []string{"application/srgs+xml"}
+	part, _ := writer.CreatePart(grammarHeader)
+	part.Write([]byte(grammar + "\n"))
+
+	// Write the file field
+	fileHeader := make(map[string][]string)
+	fileHeader["Content-Disposition"] = []string{"form-data; name=\"x-voice\"; filename=\"" + apiRequest.Filename + "\""}
+	fileHeader["Content-Type"] = []string{apiRequest.ContentType}
+	part, _ = writer.CreatePart(fileHeader)
+	io.Copy(part, apiRequest.Data)
+
+	writer.Close()
+
+	contentType := writer.FormDataContentType()
+	contentType = strings.Replace(contentType, "form-data", "x-srgs-audio", 1)
+	return body, contentType
 }

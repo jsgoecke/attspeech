@@ -21,10 +21,15 @@ type Client struct {
 type APIError struct {
 	RequestError struct {
 		ServiceException struct {
-			MessageId string `json:"MessageId"`
+			MessageID string `json:"MessageId"`
 			Text      string `json:"Text"`
 			Variables string `json:"Variables"`
 		} `json:"ServiceException"`
+		PolicyException struct {
+			MessageID string `json:"MessageId"`
+			Text      string `json:"Text"`
+			Variables string `json:"Variables"`
+		} `json:"PolicyException"`
 	} `json:"RequestError"`
 }
 
@@ -41,13 +46,19 @@ type Recognition struct {
 		Status     string `json:"Status"`
 		ResponseID string `json:"ResponseId"`
 		NBest      []struct {
-			Hypothesis string    `json:"Hypothesis"`
-			LanguageID string    `json:"LanguageId"`
-			Confidence float32   `json:"Confidence"`
-			Grade      string    `json:"Grade"`
-			ResultText string    `json:"ResultText"`
-			Words      []string  `json:"Words"`
-			WordScores []float32 `json:"WordScores"`
+			Hypothesis    string    `json:"Hypothesis"`
+			LanguageID    string    `json:"LanguageId"`
+			Confidence    float32   `json:"Confidence"`
+			Grade         string    `json:"Grade"`
+			ResultText    string    `json:"ResultText"`
+			Words         []string  `json:"Words"`
+			WordScores    []float32 `json:"WordScores"`
+			NluHypothesis struct {
+				OutComposite []struct {
+					Grammar string `json:"Grammar"`
+					Out     string `json:"Out"`
+				} `json:"OutComposite"`
+			} `json:"NluHypothesis"`
 		} `json:"NBest"`
 	} `json:"Recognition"`
 }
@@ -72,5 +83,6 @@ type APIRequest struct {
 	TransferEncoding string
 	UserAgent        string
 	XArg             string
+	Filename         string
 	Data             *bytes.Buffer
 }
