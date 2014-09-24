@@ -73,16 +73,20 @@ type Token struct {
 
 // APIRequest represents the parameters for a Text to Speech request
 type APIRequest struct {
-	Authorization    string
-	ContentType      string
-	Accept           string
-	VoiceName        string
-	Text             string
-	Volume           string
-	Tempo            string
-	TransferEncoding string
-	UserAgent        string
-	XArg             string
-	Filename         string
-	Data             *bytes.Buffer
+	Accept            string
+	Authorization     string
+	ContentLanguage   string
+	ContentLength     string
+	ContentType       string
+	Data              *bytes.Buffer
+	Filename          string
+	Tempo             string
+	Text              string
+	TransferEncoding  string
+	VoiceName         string
+	Volume            string
+	UserAgent         string
+	XArg              string
+	XSpeechContext    string
+	XSpeechSubContext string
 }

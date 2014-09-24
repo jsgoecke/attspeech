@@ -62,13 +62,13 @@ func TestSetHeaders(t *testing.T) {
 		Convey("Should add VoiceName, Volume and Temp to X-Arg", func() {
 			req, _ := http.NewRequest("POST", client.APIBase, nil)
 			apiRequest.setHeaders(req)
-			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,VoiceName=alberto,Volume=100,Tempo=0")
+			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,Tempo=0,VoiceName=alberto,Volume=100")
 		})
 		Convey("Should add additional X-Arg params while preserving the original ones", func() {
 			req, _ := http.NewRequest("POST", client.APIBase, nil)
 			apiRequest.XArg += ",ShowWordTokens=true"
 			apiRequest.setHeaders(req)
-			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,ShowWordTokens=true,VoiceName=alberto,Volume=100,Tempo=0")
+			So(req.Header.Get("X-Arg"), ShouldEqual, "ClientApp=GoLibForATTSpeech,ClientVersion=0.1,DeviceType=amd64,DeviceOs=darwin,ShowWordTokens=true,Tempo=0,VoiceName=alberto,Volume=100")
 		})
 	})
 }
