@@ -2,6 +2,7 @@ package attspeech
 
 import (
 	"bytes"
+	"encoding/json"
 	. "github.com/smartystreets/goconvey/convey"
 	"io"
 	"io/ioutil"
@@ -19,7 +20,9 @@ func TestClient(t *testing.T) {
 		So(client.ID, ShouldEqual, "foo")
 		So(client.Secret, ShouldEqual, "bar")
 		So(client.STTResource, ShouldEqual, STTResource)
+		So(client.STTCResource, ShouldEqual, STTCResource)
 		So(client.TTSResource, ShouldEqual, TTSResource)
+		So(client.Scope, ShouldEqual, [3]string{"SPEECH", "STTC", "TTS"})
 	})
 }
 
@@ -265,6 +268,25 @@ func TestTextToSpeech(t *testing.T) {
 	})
 }
 
+func TestGenerateErr(t *testing.T) {
+	Convey("Should generate error messages", t, func() {
+		Convey("ServiceException", func() {
+			apiError := &APIError{}
+			json.Unmarshal(contentTypeErrorJSON(), apiError)
+			err := apiError.generateErr()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "SVC0002 - Invalid input value for message part %1 - Content-Type")
+		})
+		Convey("PolicyException", func() {
+			apiError := &APIError{}
+			json.Unmarshal(policyErrorJSON(), apiError)
+			err := apiError.generateErr()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "SVC0002 - Policy error - Content-Type")
+		})
+	})
+}
+
 func serveHTTP(t *testing.T) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if strings.Contains(req.RequestURI, OauthResource) {
@@ -431,6 +453,20 @@ func contentTypeErrorJSON() []byte {
 	        "ServiceException": {
 	            "MessageId": "SVC0002",
 	            "Text": "Invalid input value for message part %1",
+	            "Variables": "Content-Type"
+	        }
+	    }
+	}
+	`)
+}
+
+func policyErrorJSON() []byte {
+	return []byte(`
+	{
+	    "RequestError": {
+	        "PolicyException": {
+	            "MessageId": "SVC0002",
+	            "Text": "Policy error",
 	            "Variables": "Content-Type"
 	        }
 	    }
