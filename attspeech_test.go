@@ -331,6 +331,11 @@ func TestGenerateErr(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "SVC0002 - Policy error - Content-Type")
 		})
+		Convey("Bad JSON", func() {
+			apiError := &APIError{}
+			err := apiError.generateErr()
+			So(err.Error(), ShouldEqual, "could not parse JSON error from the AT&T Speech API")
+		})
 	})
 }
 
