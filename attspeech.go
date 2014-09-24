@@ -332,31 +332,34 @@ func buildForm(apiRequest *APIRequest, grammar string, dictionary string) (*byte
 	writer := multipart.NewWriter(body)
 
 	if dictionary != "" {
-		// Write the dictionary field
-		dictionaryHeader := make(map[string][]string)
-		dictionaryHeader["Content-Disposition"] = []string{"form-data; name=\"x-dictionary\"; filename=\"speech_alpha.pls\""}
-		dictionaryHeader["Content-Type"] = []string{"application/pls+xml"}
-		part, _ := writer.CreatePart(dictionaryHeader)
-		part.Write([]byte(dictionary + "\n"))
+		// Add the dictionary field
+		contentDisposition := "form-data; name=\"x-dictionary\"; filename=\"speech_alpha.pls\""
+		apiRequest.addField(writer, dictionary, contentDisposition, "application/pls+xml")
 	}
 
-	// Write the grammar field
-	grammarHeader := make(map[string][]string)
-	grammarHeader["Content-Disposition"] = []string{"form-data; name=\"x-grammar\""}
-	grammarHeader["Content-Type"] = []string{"application/srgs+xml"}
-	part, _ := writer.CreatePart(grammarHeader)
-	part.Write([]byte(grammar + "\n"))
+	// Add the grammar field
+	contentDisposition := "form-data; name=\"x-grammar\""
+	apiRequest.addField(writer, grammar, contentDisposition, "application/srgs+xml")
 
-	// Write the file field
-	fileHeader := make(map[string][]string)
-	fileHeader["Content-Disposition"] = []string{"form-data; name=\"x-voice\"; filename=\"" + apiRequest.Filename + "\""}
-	fileHeader["Content-Type"] = []string{apiRequest.ContentType}
-	part, _ = writer.CreatePart(fileHeader)
-	io.Copy(part, apiRequest.Data)
+	// Add the file field
+	contentDisposition = "form-data; name=\"x-voice\"; filename=\"" + apiRequest.Filename + "\""
+	apiRequest.addField(writer, grammar, contentDisposition, apiRequest.ContentType)
 
 	writer.Close()
 
 	contentType := writer.FormDataContentType()
 	contentType = strings.Replace(contentType, "form-data", "x-srgs-audio", 1)
 	return body, contentType
+}
+
+func (apiRequest *APIRequest) addField(writer *multipart.Writer, body string, contentDisposition string, contentType string) {
+	header := make(map[string][]string)
+	header["Content-Disposition"] = []string{contentDisposition}
+	header["Content-Type"] = []string{contentType}
+	part, _ := writer.CreatePart(header)
+	if contentType == "application/pls+xml" || contentType == "application/srgs+xml" {
+		part.Write([]byte(body + "\n"))
+	} else {
+		io.Copy(part, apiRequest.Data)
+	}
 }
