@@ -166,3 +166,11 @@ func main() {
 	cd attspeech
 	go get github.com/smartystreets/goconvey/convey
 	go test
+
+### Test Coverage
+
+[http://gocover.io/github.com/jsgoecke/attspeech](http://gocover.io/github.com/jsgoecke/attspeech)
+
+### Lint
+
+[http://go-lint.appspot.com/github.com/jsgoecke/attspeech](http://go-lint.appspot.com/github.com/jsgoecke/attspeech)

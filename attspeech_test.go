@@ -33,6 +33,33 @@ func TestCustomApiBase(t *testing.T) {
 	})
 }
 
+func TestNewAPIRequest(t *testing.T) {
+	ts := serveHTTP(t)
+	client := New("foo", "bar", "")
+	client.APIBase = ts.URL
+	client.SetAuthTokens()
+	Convey("Should generate a new APIRequest object", t, func() {
+		Convey("STTResource", func() {
+			apiRequest := client.NewAPIRequest(client.STTResource)
+			So(apiRequest.TransferEncoding, ShouldEqual, "chunked")
+			So(apiRequest.Authorization, ShouldEqual, "Bearer "+client.Tokens["SPEECH"].AccessToken)
+		})
+		Convey("STTCResource", func() {
+			apiRequest := client.NewAPIRequest(client.STTCResource)
+			So(apiRequest.Authorization, ShouldEqual, "Bearer "+client.Tokens["STTC"].AccessToken)
+		})
+		Convey("TTSResource", func() {
+			apiRequest := client.NewAPIRequest(client.TTSResource)
+			So(apiRequest.ContentType, ShouldEqual, "text/plain")
+			So(apiRequest.Authorization, ShouldEqual, "Bearer "+client.Tokens["TTS"].AccessToken)
+		})
+		Convey("OauthResource", func() {
+			apiRequest := client.NewAPIRequest(client.OauthResource)
+			So(apiRequest.ContentType, ShouldEqual, "application/x-www-form-urlencoded")
+		})
+	})
+}
+
 func TestToDash(t *testing.T) {
 	Convey("Converting struct elements to HTTP headers", t, func() {
 		Convey("Should leave this word undashed", func() {
