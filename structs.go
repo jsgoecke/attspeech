@@ -2,7 +2,6 @@ package attspeech
 
 import (
 	"bytes"
-	"regexp"
 )
 
 // Client is an ATT Speech API client
@@ -31,13 +30,6 @@ type APIError struct {
 			Variables string `json:"Variables"`
 		} `json:"PolicyException"`
 	} `json:"RequestError"`
-}
-
-// ValueRegexes represents the regexes for all possible values of the API
-type ValueRegexes struct {
-	ContentType *regexp.Regexp
-	FileType    *regexp.Regexp
-	VoiceName   *regexp.Regexp
 }
 
 // Recognition represents at AT&T recognition response
