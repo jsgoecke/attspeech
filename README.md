@@ -1,5 +1,7 @@
 # attspeech
 
+[![wercker status](https://app.wercker.com/status/1c102c5109b0f8f4ecfe8f24e8eb8fcd/m "wercker status")](https://app.wercker.com/project/bykey/1c102c5109b0f8f4ecfe8f24e8eb8fcd)
+
 Go client for the [AT&T Speech API](http://developer.att.com/apis/speech).
 
 ## Installation
