@@ -174,11 +174,11 @@ TextToSpeech converts text to a speech file
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
 
-	request := client.NewAPIRequest(TTSResource)
-	request.Accept = "audio/x-wav",
-	request.VoiceName = "crystal",
-	request.Text = "I want to be an airborne ranger, I want to live the life of danger.",
-	data, err := client.TextToSpeech(request)
+	apiRequest := client.NewAPIRequest(TTSResource)
+	apiRequest.Accept = "audio/x-wav",
+	apiRequest.VoiceName = "crystal",
+	apiRequest.Text = "I want to be an airborne ranger, I want to live the life of danger.",
+	data, err := client.TextToSpeech(apiRequest)
 
 More details available here:
 
@@ -201,7 +201,16 @@ func (client *Client) TextToSpeech(apiRequest *APIRequest) ([]byte, error) {
 	return nil, apiError.generateErr()
 }
 
-// NewAPIRequest sets the common headers for TTS and STT
+/*
+NewAPIRequest sets the common headers for TTS and STT
+
+	client := attspeech.New("<id>", "<secret>", "")
+	client.SetAuthTokens()
+	apiRequest := client.NewAPIRequest(TTSResource)
+
+Note, when setting apiRequest.XArg, always append with '+=', unless you specifically
+intend to overwrite the defaults for ClientApp, ClientVersion, DeviceType and DeviceOs
+*/
 func (client *Client) NewAPIRequest(resource string) *APIRequest {
 	apiRequest := &APIRequest{}
 	apiRequest.UserAgent = "Golang net/http"
