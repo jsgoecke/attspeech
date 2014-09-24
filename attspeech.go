@@ -91,7 +91,6 @@ SpeechToText converts an audio file to text
 
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
-	// data is the binary content of an audio file
 	apiRequest := client.NewAPIRequest(STTResource)
 	apiRequest.Data = data // where data is audio content as *bytes.Buffer
 	apiRequest.ContentType = "audio/wav"
@@ -128,7 +127,6 @@ SpeechToTextCustom converts an audio file to text
 
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
-	// data is the binary content of an audio file
 	apiRequest := client.NewAPIRequest(STTResource)
 	apiRequest.Data = data // where data is audio content as *bytes.Buffer
 	apiRequest.ContentType = "audio/wav"
