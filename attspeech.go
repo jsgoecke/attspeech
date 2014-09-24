@@ -349,6 +349,7 @@ func buildForm(apiRequest *APIRequest, grammar string, dictionary string) (*byte
 	return body, contentType
 }
 
+// addField adds a field to a multipart form
 func (apiRequest *APIRequest) addField(writer *multipart.Writer, body string, contentDisposition string, contentType string) {
 	header := make(map[string][]string)
 	header["Content-Disposition"] = []string{contentDisposition}
