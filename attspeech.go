@@ -39,12 +39,14 @@ New creates a new AttSpeechClient
 */
 func New(id string, secret string, apiBase string) *Client {
 	client := &Client{
-		STTResource: STTResource,
-		TTSResource: TTSResource,
-		ID:          id,
-		Secret:      secret,
-		Scope:       [3]string{"SPEECH", "STTC", "TTS"},
-		TTSFields:   [3]string{"Volume", "Tempo", "VoiceName"},
+		STTResource:   STTResource,
+		STTCResource:  STTCResource,
+		TTSResource:   TTSResource,
+		OauthResource: OauthResource,
+		ID:            id,
+		Secret:        secret,
+		Scope:         [3]string{"SPEECH", "STTC", "TTS"},
+		TTSFields:     [3]string{"Volume", "Tempo", "VoiceName"},
 	}
 	if apiBase == "" {
 		client.APIBase = APIBase
@@ -108,7 +110,7 @@ func (client *Client) SpeechToText(apiRequest *APIRequest) (*Recognition, error)
 		return nil, errors.New("Data to convert to text must be provided")
 	}
 
-	body, statusCode, err := client.post(STTResource, apiRequest.Data, apiRequest)
+	body, statusCode, err := client.post(client.STTResource, apiRequest.Data, apiRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +155,7 @@ func (client *Client) SpeechToTextCustom(apiRequest *APIRequest, grammar string,
 	}
 
 	apiRequest.Data, apiRequest.ContentType = buildForm(apiRequest, grammar, dictionary)
-	body, statusCode, err := client.post(STTCResource, apiRequest.Data, apiRequest)
+	body, statusCode, err := client.post(client.STTCResource, apiRequest.Data, apiRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +189,7 @@ func (client *Client) TextToSpeech(apiRequest *APIRequest) ([]byte, error) {
 		return nil, errors.New("Text to convert to speech must be provided")
 	}
 
-	body, statusCode, err := client.post(TTSResource, bytes.NewBuffer([]byte(apiRequest.Text)), apiRequest)
+	body, statusCode, err := client.post(client.TTSResource, bytes.NewBuffer([]byte(apiRequest.Text)), apiRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -209,17 +211,17 @@ func (client *Client) NewAPIRequest(resource string) *APIRequest {
 	apiRequest.XArg += "DeviceOs=" + runtime.GOOS
 
 	switch resource {
-	case STTResource:
+	case client.STTResource:
 		apiRequest.Accept = "application/json"
 		apiRequest.Authorization = "Bearer " + client.Tokens["SPEECH"].AccessToken
 		apiRequest.TransferEncoding = "chunked"
-	case STTCResource:
+	case client.STTCResource:
 		apiRequest.Accept = "application/json"
 		apiRequest.Authorization = "Bearer " + client.Tokens["STTC"].AccessToken
-	case TTSResource:
+	case client.TTSResource:
 		apiRequest.Authorization = "Bearer " + client.Tokens["TTS"].AccessToken
 		apiRequest.ContentType = "text/plain"
-	case OauthResource:
+	case client.OauthResource:
 		apiRequest.Accept = "application/json"
 		apiRequest.ContentType = "application/x-www-form-urlencoded"
 	}

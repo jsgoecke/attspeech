@@ -6,14 +6,16 @@ import (
 
 // Client is an ATT Speech API client
 type Client struct {
-	APIBase     string
-	STTResource string
-	TTSResource string
-	ID          string
-	Secret      string
-	Tokens      map[string]*Token
-	Scope       [3]string
-	TTSFields   [3]string
+	APIBase       string
+	STTResource   string
+	STTCResource  string
+	TTSResource   string
+	OauthResource string
+	ID            string
+	Secret        string
+	Tokens        map[string]*Token
+	Scope         [3]string
+	TTSFields     [3]string
 }
 
 // APIError represents an error from the AT&T Speech API
