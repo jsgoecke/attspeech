@@ -265,6 +265,10 @@ func (apiError *APIError) generateErr() error {
 
 	}
 	if msg == " -  - " {
+		/*
+			#FIXME
+			http://developerboards.att.lithium.com/t5/API-Platform/Speech-API-STTC-Error-Returns-Invalid-JSON/td-p/38929
+		*/
 		msg = "Could not parse JSON error from the AT&T Speech API"
 	}
 	return errors.New(msg)
