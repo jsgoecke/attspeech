@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -170,7 +169,6 @@ func (client *Client) SpeechToTextCustom(apiRequest *APIRequest, grammar string,
 		recognition := &Recognition{}
 		err := json.Unmarshal(body, recognition)
 		if err != nil {
-			fmt.Println(err)
 			return nil, apiError.generateErr()
 		}
 		return recognition, nil
