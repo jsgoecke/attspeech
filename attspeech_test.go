@@ -227,6 +227,14 @@ func TestBuildForm(t *testing.T) {
 
 func TestSpeechToTextCustom(t *testing.T) {
 	Convey("Should return a recognition of an audio file", t, func() {
+		// Read the test file
+		data := &bytes.Buffer{}
+		file, err := os.Open("./test/test.wav")
+		So(err, ShouldBeNil)
+		defer file.Close()
+		_, err = io.Copy(data, file)
+		So(err, ShouldBeNil)
+
 		ts := serveHTTP(t)
 		client := New(os.Getenv("ATT_APP_KEY"), os.Getenv("ATT_APP_SECRET"), "")
 		client.APIBase = ts.URL
@@ -258,18 +266,20 @@ func TestSpeechToTextCustom(t *testing.T) {
 			So(response, ShouldBeNil)
 			So(err.Error(), ShouldEqual, "content type must be provided")
 		})
-		Convey("Should process a custom STT request", func() {
-			// Read the test file
-			data := &bytes.Buffer{}
-			file, err := os.Open("./test/test.wav")
-			So(err, ShouldBeNil)
-			defer file.Close()
-			_, err = io.Copy(data, file)
-			So(err, ShouldBeNil)
-
+		Convey("When an error is returned", func() {
 			apiRequest.Data = data
 			apiRequest.Filename = "test.wav"
 			apiRequest.ContentType = "audio/wav"
+			apiRequest.XSpeechContext = "raise/error"
+			response, err := client.SpeechToTextCustom(apiRequest, srgsXML(), plsXML())
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "SVC0002 - Invalid input value for message part %1 - Content-Type")
+		})
+		Convey("Should process a custom STT request", func() {
+			apiRequest.Data = data
+			apiRequest.Filename = "test.wav"
+			apiRequest.ContentType = "audio/wav"
+			apiRequest.XSpeechContext = ""
 			response, err := client.SpeechToTextCustom(apiRequest, srgsXML(), plsXML())
 			So(err, ShouldBeNil)
 			So(response.Recognition.Status, ShouldEqual, "OK")
@@ -332,6 +342,11 @@ func serveHTTP(t *testing.T) *httptest.Server {
 			return
 		}
 		if strings.Contains(req.RequestURI, STTCResource) {
+			if req.Header.Get("X-SpeechContext") == "raise/error" {
+				w.WriteHeader(400)
+				w.Write(contentTypeErrorJSON())
+				return
+			}
 			checkHeaders(t, req)
 			w.WriteHeader(200)
 			w.Write(customRecoginitionJSON())
