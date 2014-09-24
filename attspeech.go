@@ -46,7 +46,6 @@ func New(id string, secret string, apiBase string) *Client {
 		ID:            id,
 		Secret:        secret,
 		Scope:         [3]string{"SPEECH", "STTC", "TTS"},
-		TTSFields:     [3]string{"Volume", "Tempo", "VoiceName"},
 	}
 	if apiBase == "" {
 		client.APIBase = APIBase

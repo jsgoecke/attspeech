@@ -15,7 +15,6 @@ type Client struct {
 	Secret        string
 	Tokens        map[string]*Token
 	Scope         [3]string
-	TTSFields     [3]string
 }
 
 // APIError represents an error from the AT&T Speech API
