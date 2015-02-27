@@ -93,7 +93,7 @@ SpeechToText converts an audio file to text
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
 	apiRequest := client.NewAPIRequest(STTResource)
-	apiRequest.Data = data // where data is audio content as *bytes.Buffer
+	apiRequest.Data = data // where data is audio content as io.Reader
 	apiRequest.ContentType = "audio/wav"
 	result, apiError, err := client.SpeechToText(apiRequest)
 
@@ -135,7 +135,7 @@ SpeechToTextCustom converts an audio file to text
 	client := attspeech.New("<id>", "<secret>", "")
 	client.SetAuthTokens()
 	apiRequest := client.NewAPIRequest(STTResource)
-	apiRequest.Data = data // where data is audio content as *bytes.Buffer
+	apiRequest.Data = data // where data is audio content as io.Reader
 	apiRequest.ContentType = "audio/wav"
 	apiRequest.Filename = "test.wav"
 	result, apiError, err := client.SpeechToTextCustom(apiRequest, "<some srgs XML>", "<some pls XML>")
@@ -201,7 +201,7 @@ func (client *Client) TextToSpeech(apiRequest *APIRequest) ([]byte, error) {
 		return nil, errors.New("text to convert to speech must be provided")
 	}
 
-	body, statusCode, err := client.post(client.TTSResource, bytes.NewBuffer([]byte(apiRequest.Text)), apiRequest)
+	body, statusCode, err := client.post(client.TTSResource, strings.NewReader(apiRequest.Text), apiRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (client *Client) NewAPIRequest(resource string) *APIRequest {
 }
 
 // post to the AT&T Speech API
-func (client *Client) post(resource string, body *bytes.Buffer, apiRequest *APIRequest) ([]byte, int, error) {
+func (client *Client) post(resource string, body io.Reader, apiRequest *APIRequest) ([]byte, int, error) {
 	req, err := http.NewRequest("POST", client.APIBase+resource, body)
 	if err != nil {
 		return nil, 0, err
