@@ -1,7 +1,7 @@
 package attspeech
 
 import (
-	"bytes"
+	"io"
 )
 
 // Client is an ATT Speech API client
@@ -71,7 +71,7 @@ type APIRequest struct {
 	ContentLanguage   string
 	ContentLength     string
 	ContentType       string
-	Data              *bytes.Buffer
+	Data              io.Reader
 	Filename          string
 	Tempo             string
 	Text              string
